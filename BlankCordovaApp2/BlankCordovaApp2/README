@@ -1,0 +1,66 @@
+﻿For Exchange using JS libraries
+	<script src="./Scripts/UTILITY.js"></script>
+    <script src="inappbrowseroverride.js"></script>
+    <script src="./Scripts/ADAL.js"></script>
+    <script src="./ts/settings.js"></script>
+    <script src="./Scripts/ExchangeClient.js"></script>
+
+Add a new Javscript file to Scripts include a reference to it in index.html
+	<script src="./Scripts/script.js"></script>
+
+Aad the following to the script.js
+
+$(document).ready(function () {
+	var authContext = new AadAuth.Context();
+
+    authContext.getIdToken("https://outlook.office365.com/")
+        .then((function (token) {
+            authtoken = token;
+            getEvents();
+        }).bind(this), function(reason){
+        $('#error').text('failed ' + reason.message);
+    });
+
+	var ec = new Microsoft.Exchange.Services.OData.Model.ExchangeClient('https://outlook.office365.com/ews/odata', authtoken.getAccessTokenFn('https://outlook.office365.com'));
+    ec.Me.Calendar.exec()
+        .then(function (Calendar) {
+            Calendar.Events.getEventCollection()
+                .then(function (Events) {
+                    var events = Events.currentPage;
+					//do stuff with events
+                }, function (reason) {
+                    $('#error').text('failed ' + reason);
+                });
+        }, function (reason) {
+            $('#error').text('failed ' + reason);
+        });
+});
+
+
+
+
+For AD Graph using TS libraries
+Add the following script tags to index.html:
+
+    <script src="./scripts/UTILITY.js"></script>
+    <script src="InAppBrowserOverride.js"></script>
+    <script src="./scripts/ADAL.js"></script>
+    <script src="./scripts/AADGraph.js"></script>
+    <script src="./ts/settings.js"></script>
+    <script src="./ts/index.js"></script>
+
+Add the following to index.ts after the following comment:
+			// TODO: Cordova has been loaded. Perform any initialization that requires Cordova here.
+
+            var ac = new AadAuth.Context();
+            ac.getIdToken("https://graph.windows.net/").then(
+                (token) => {
+                    var aad = new Microsoft.WindowsAzure.ActiveDirectory.AadGraphClient(
+                        "https://graph.windows.net/" + token.tenant_id, token.getAccessTokenFn());
+                    aad.SubscribedSkus.getSubscribedSkuCollection().then(f => {
+                        var k = "";
+                    },
+                        e => {
+                            var k = "";
+                        });
+                });
